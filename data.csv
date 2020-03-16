@@ -1,0 +1,11 @@
+nombre,mass_kg,distance_km,eccentricity
+sol,1.989e30,0,0
+mercury,0.33e24,57.9e6,0.205
+venus,4.87e24,108.2e6,0.007
+earth,5.97e24,149.6e6,0.017
+mars,0.642e24,227.9e6,0.094
+jupiter,1899.0e24,778.6e6,0.049
+saturn,568.0e24,1433.5e6,0.057
+uranus,86.8e24,2872.5e6,0.046
+neptune,102.0e24,4495.1e6,0.011
+pluto,0.0125e24,5870.0e6,0.244
