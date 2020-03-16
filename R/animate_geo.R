@@ -20,7 +20,7 @@ dir.create("../geocentric")
 
 #Make a big enough blank plot for all the trajectories
 for(i in 1:N) { #Number of frames
-  if(i%%1 == 0) { #Sample every X frames in case there are too many of them
+  if(i%%2 == 0) { #Sample every X frames in case there are too many of them
     #Create each .png frame
     png(paste("../geocentric/frame",i,".png",sep=""),width=500,height=500)
     
@@ -38,9 +38,9 @@ for(i in 1:N) { #Number of frames
     
     for(j in 1:10) { #Plot every body in the Solar System
       points(x[i,j]-x[i,4],y[i,j]-y[i,4],type="p",cex=sizes[j],col=colrs[j]) #Plots position of the planet
+      text(x[i,j]-x[i,4],y[i,j]-y[i,4]-0.05,labels=names[j],col="white",cex=0.9)
       if(i<20*j) { #Plots trail. Not enough points at first, so we just plot whatever we have.
         for(k in 1:(i-1)) {
-          text(x[i,j]-x[i,4],y[i,j]-y[i,4]-0.05,labels=names[j],col="white",cex=0.9)
           points(x[i-k,j]-x[i-k,4],y[i-k,j]-y[i-k,4],cex=0.4,col=colrs[j])
         }
       }
