@@ -1,14 +1,14 @@
       program sistsolar
         implicit none
-        real*8, dimension (:,:), allocatable :: x,y,vx,vy,ax,ay
+        real*8, dimension (:,:), allocatable :: x,y,vx,vy,ax,ay,KE,UE
         real*8, dimension (:), allocatable :: m, e
         real*8 h, t, tmax
-        real*8 calc_x, calc_v, calc_a, aux
+        real*8 calc_x, calc_v, calc_a, aux, total_KE, total_UE
         integer i, j, k, n_bodies, N
 
 c       Length of each step (in seconds) = max time to compute / frames
         n_bodies = 10
-        N = 300
+        N = 63000
         tmax = 6.3 !Little more than an Earth year
         t = 0.d0
         h = tmax/float(N)
@@ -17,10 +17,13 @@ c       Allocate memory for each vector
         allocate(x(1:n_bodies,1:N),y(1:n_bodies,1:N))
         allocate(vx(1:n_bodies,1:N),vy(1:n_bodies,1:N))
         allocate(ax(1:n_bodies,1:N),ay(1:n_bodies,1:N))
+        allocate(KE(1:n_bodies,1:N),UE(1:n_bodies,1:N))
         allocate(m(1:n_bodies),e(1:n_bodies))
 
 c       Initialize the vectors.
         t = 0.d0
+        KE = 0.d0
+        UE = 0.d0
         m = 0.d0
         x = 0.d0
         y = 0.d0
@@ -54,6 +57,7 @@ c       store everything in one go.
         open(50,file="./results/ax.txt")
         open(60,file="./results/ay.txt")
         open(70,file="./results/t.txt")
+        open(80,file="./results/energy.txt")
 
 
 c       Evaluate accelerations to set initial conditions
@@ -80,20 +84,24 @@ c           Compute positions
           end do
 
           do j=1,n_bodies
-c           Compute accelerations
+c           Compute accelerations and potential energy (same type of sum)
             do k=1,n_bodies
             if(j .ne. k) then !Avoid self-interactions
             ax(j,i) = ax(j,i) + calc_a(m(k),x(j,i),x(k,i),y(j,i),y(k,i))
             ay(j,i) = ay(j,i) + calc_a(m(k),y(j,i),y(k,i),x(j,i),x(k,i))
+            aux = dsqrt((x(j,i)-x(k,i))**2.0+(y(j,i)-y(k,i))**2.0)
+            UE(j,i) = UE(j,i) - (m(j)*m(k))/aux
             end if
             end do
           end do
 
           do j=1,n_bodies
-c           Compute velocities
+c           Compute velocities and kinetic energies
             vx(j,i) = calc_v(h,vx(j,i-1),ax(j,i-1),ax(j,i))
             vy(j,i) = calc_v(h,vy(j,i-1),ay(j,i-1),ay(j,i))
+            KE(j,i) = (1.0/2.0)*m(j)*(vx(j,i)**2.0 + vy(j,i)**2.0)
           end do
+
           t=t+h
           write(70,*) t
         end do
@@ -108,8 +116,20 @@ c       Save results. i-th row = i-th iteration, j-th column = j-th object
               write(60,*) (ay(j,i),j=1,n_bodies)
         end do
 
+        do i=2,N
+          total_KE = 0.d0
+          total_UE = 0.d0
+          do j=1,n_bodies
+            total_KE = total_KE + KE(j,i)
+            total_UE = total_UE + UE(j,i)
+          end do
+          write(80,*) i,total_KE,total_UE,total_KE+total_UE
+        end do
+
+
+
 c       Close every file
-        do i=10,70,10
+        do i=10,80,10
         close(i)
         end do
         write(*,*) "Datos guardados en directorio ./results/"
