@@ -40,15 +40,15 @@ for(i in 1:N) { #Number of frames
       points(x[i,j]-x[i,1],y[i,j]-y[i,1],type="p",cex=sizes[j],col=colrs[j]) #Plots position of the planet
       if(i<20*j) { #Plots trail. Not enough points at first, so we just plot whatever we have.
         for(k in 1:(i-1)) {
-          points(x[i-k,j],y[i-k,j],cex=0.3,col=colrs[j])
+          points(x[i-k,j]-x[i,1],y[i-k,j]-y[i,1],cex=0.3,col=colrs[j])
         }
       }
       if(i>=20*j) {
         for(k in 1:(20*j)) {
-          points(x[i-k,j],y[i-k,j],cex=0.3,col=colrs[j])
+          points(x[i-k,j]-x[i,1],y[i-k,j]-y[i,1],cex=0.3,col=colrs[j])
         }
       }
-      text(x[i,j],y[i,j]+0.05,labels=names[j],col="white",cex=0.9)
+      text(x[i,j]-x[i,1],y[i,j]-y[i,1]+0.05,labels=names[j],col="white",cex=0.9)
     }
     dev.off()
   }
