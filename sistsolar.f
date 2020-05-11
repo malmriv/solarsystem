@@ -2,14 +2,14 @@
         implicit none
         real*8, dimension (:,:), allocatable :: x,y,vx,vy,ax,ay,KE,UE
         real*8, dimension (:), allocatable :: m, e
-        real*8 h, t, tmax
+        real*8 h, t, tmax, angmomentum
         real*8 calc_x, calc_v, calc_a, aux, total_KE, total_UE
         integer i, j, k, n_bodies, N
 
 c       Length of each step (in seconds) = max time to compute / frames
         n_bodies = 10
-        N = 63000
-        tmax = 6.3 !Little more than an Earth year
+        N = 100000
+        tmax = 6.2865 !An Earth year
         t = 0.d0
         h = tmax/float(N)
 
@@ -58,6 +58,7 @@ c       store everything in one go.
         open(60,file="./results/ay.txt")
         open(70,file="./results/t.txt")
         open(80,file="./results/energy.txt")
+        open(90,file="./results/angmomentum.txt")
 
 
 c       Evaluate accelerations to set initial conditions
@@ -89,18 +90,28 @@ c           Compute accelerations and potential energy (same type of sum)
             if(j .ne. k) then !Avoid self-interactions
             ax(j,i) = ax(j,i) + calc_a(m(k),x(j,i),x(k,i),y(j,i),y(k,i))
             ay(j,i) = ay(j,i) + calc_a(m(k),y(j,i),y(k,i),x(j,i),x(k,i))
-            aux = dsqrt((x(j,i)-x(k,i))**2.0+(y(j,i)-y(k,i))**2.0)
-            UE(j,i) = UE(j,i) - (m(j)*m(k))/aux
             end if
             end do
           end do
 
           do j=1,n_bodies
-c           Compute velocities and kinetic energies
+c           Compute the potential energy
+            do k=j+1,n_bodies
+              aux = dsqrt((x(j,i)-x(k,i))**2.0+(y(j,i)-y(k,i))**2.0)
+              UE(j,i) = UE(j,i) - (m(j)*m(k))/aux
+            end do
+          end do
+
+          angmomentum = 0.d0
+          do j=1,n_bodies
+c           Compute velocities, kinetic energy and angular momentum
             vx(j,i) = calc_v(h,vx(j,i-1),ax(j,i-1),ax(j,i))
             vy(j,i) = calc_v(h,vy(j,i-1),ay(j,i-1),ay(j,i))
             KE(j,i) = (1.0/2.0)*m(j)*(vx(j,i)**2.0 + vy(j,i)**2.0)
+            angmomentum = angmomentum + m(j)*(x(j,i)*vy(j,i)-
+     &      y(j,i)*vx(j,i))
           end do
+          write(90,*) angmomentum
 
           t=t+h
           write(70,*) t
@@ -126,10 +137,8 @@ c       Save results. i-th row = i-th iteration, j-th column = j-th object
           write(80,*) i,total_KE,total_UE,total_KE+total_UE
         end do
 
-
-
 c       Close every file
-        do i=10,80,10
+        do i=10,90,10
         close(i)
         end do
         write(*,*) "Datos guardados en directorio ./results/"
